@@ -1,5 +1,5 @@
 assert = require 'assert'
-had = require '../index'
+needs = require '../index'
 
 describe 'placeholder', ->
   before ->
