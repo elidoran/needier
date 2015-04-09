@@ -1,3 +1,4 @@
+had = require('had') id:'needer'
 
 module.exports = () -> new Needs()
 
