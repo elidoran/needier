@@ -9,6 +9,8 @@ describe 'test acceptable needs', ->
 
     it 'should be the only need', ->
       expected =
+        success: true
+        had: 'needs'
         array: [ 'one' ]
 
       this.needs.of 'one'
@@ -21,6 +23,8 @@ describe 'test acceptable needs', ->
 
     it 'should order the dep first', ->
       expected =
+        success: true
+        had: 'needs'
         array: [ 'one', 'two' ]
 
       this.needs.of 'two'
@@ -34,6 +38,8 @@ describe 'test acceptable needs', ->
 
     it 'should order the deps first', ->
       expected =
+        success: true
+        had: 'needs'
         array: [ 'one', 'two', 'three' ]
 
       this.needs.of 'three'
@@ -47,6 +53,8 @@ describe 'test acceptable needs', ->
 
     it 'should order the deps first', ->
       expected =
+        success: true
+        had: 'needs'
         array: [ 'one', 'two', 'three', 'four' ]
 
       this.needs.of 'two'
@@ -67,6 +75,7 @@ describe 'test cyclical needs', ->
 
     it 'should return error results', ->
       expected =
+        had: 'needs'
         error: 'none without need'
         type: 'cyclical'
 
@@ -84,6 +93,7 @@ describe 'test cyclical needs', ->
 
     it 'should return error results', ->
       expected =
+        had: 'needs'
         error: 'none without need'
         type: 'cyclical'
 
@@ -104,6 +114,7 @@ describe 'test cyclical needs', ->
 
     it 'should return error results', ->
       expected =
+        had: 'needs'
         error: 'cyclical need'
         type: 'cyclical'
         name: 'three'

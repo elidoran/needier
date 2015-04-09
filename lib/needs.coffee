@@ -1,4 +1,4 @@
-had = require('had') id:'needer'
+had = require('had') id:'needs'
 
 module.exports = () -> new Needs()
 
@@ -27,7 +27,7 @@ class Needs
       if result?.error? then break
 
     unless result?
-      result =
+      result = had.success
         array: search.result
 
     return result
@@ -43,7 +43,7 @@ class Needs
         result = @_searchStep search, nodeName
 
       else if search.ing?[nodeName]?
-        result =
+        result = had.error
           error: 'cyclical need'
           type: 'cyclical'
           name: nodeName
@@ -78,12 +78,11 @@ class Needs
     return @nodes[name]
 
   a: (name) ->
-    if name?
-      result =
+    unless name?
+      result = had.error
         error: 'specify a need name'
-        type: 'param'
-        param: 'name'
-        value: name # should be null/undefined
+        type: 'arg'
+        name: 'name'
 
     else if @nodes?[name]?
       result = @_search name, 'before'
@@ -93,10 +92,9 @@ class Needs
           result.array.splice idx, 1
 
     else
-      #throw new Error('Node does not exist: ' + name)
-      result =
+      result = had.error
         error: 'unknown need'
-        type: 'param'
+        type: 'arg'
         param: 'name'
         value: name
 
@@ -111,7 +109,7 @@ class Needs
     unless result?.error?
 
       if @nodeCount > 0 and result.array.length is 0
-        result =
+        result = had.error
           error: 'none without need'
           type:  'cyclical'
 
