@@ -175,3 +175,15 @@ describe 'test needs.a', ->
       assert.deepEqual result1, expected
       assert.deepEqual result2.array, expected.array
       assert.deepEqual result3.array, expected.array
+
+  describe 'two needs with same need', ->
+
+    it 'should list both needs', ->
+      expected =
+        success: true
+        had: 'needs'
+        array: [ 'A', 'B' ]
+      this.needs.of('A').are 'C'
+      this.needs.of('B').are 'C'
+      result = this.needs.a 'C'
+      assert.deepEqual result, expected
