@@ -22,10 +22,10 @@ needs.of('C').are 'E'
 
 needs.of('D').are 'C'
 
-result = needs.of('A').list()
+result = needs.of('A').list()       # get need 'A' and list its needs
 console.log result.array            # prints: [ 'B', 'C' ]
 
-result = needs.a 'B'
+result = needs.a 'B'                # list what needs 'B'
 console.log result.array            # prints: [ 'A' ]
 
 console.log needs.ordered().array   # order the needs and get array from results
@@ -42,7 +42,7 @@ console.log needs.ordered().array   # order the needs and get array from results
 
 Adds a *Need* and returns that Need with its own functions. See [Need API](#api-of-need)
 
-Used with [need.are(name...)](#needarename) to declare needs (dependencies).
+Used with [need.are(name...)](#needarename-name) to declare needs (dependencies).
 
 ```coffeescript
 need = needs.of 'someId'
