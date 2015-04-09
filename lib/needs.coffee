@@ -11,7 +11,7 @@ class Needs
     @nodes = {}
     @nodeCount = 0
 
-  _search: (names, which) ->
+  _search: (which, searchNames...) ->
 
     # TODO: check names and which and return error results...
 
@@ -21,7 +21,7 @@ class Needs
       ing: {}
       ed: {}
 
-    for name in names
+    for name in searchNames
       result = @_searchStep search, name
 
       if result?.error? then break
@@ -32,13 +32,12 @@ class Needs
 
     return result
 
-  _searchStep: (search, name) ->
+  _searchStep: (search, searchName) ->
 
-    search.ed[name]  = true
-    search.ing[name] = true
+    search.ed[searchName]  = true
+    search.ing[searchName] = true
 
-    for nodeName in @nodes[name][search.which]
-
+    for nodeName in @nodes?[searchName][search.which]
       unless search.ed?[nodeName]?
         result = @_searchStep search, nodeName
 
@@ -52,9 +51,10 @@ class Needs
 
 
     unless result?.error?
-      delete search.ing[name]
+      delete search.ing[searchName]
 
-      unless name in search.result then search.result.push name
+      unless searchName in search.result
+        search.result.push searchName
 
     return result
 
@@ -78,6 +78,7 @@ class Needs
     return @nodes[name]
 
   a: (name) ->
+
     unless name?
       result = had.error
         error: 'specify a need name'
@@ -85,7 +86,7 @@ class Needs
         name: 'name'
 
     else if @nodes?[name]?
-      result = @_search name, 'before'
+      result = @_search 'before', name
       unless result?.error?
         idx = result.array.indexOf(name)
         if idx >= 0
@@ -104,7 +105,7 @@ class Needs
 
     # get names of needs to search
     names = (name for own name,node of @nodes when node.before.length is 0)
-    result = @_search names, 'after'
+    result = @_search 'after', names...
 
     unless result?.error?
 
@@ -128,7 +129,7 @@ class Needy
     return this
 
   list: ->
-    result = @needs._search @name, 'after'
+    result = @needs._search 'after', @name
     unless result?.error?
       index = result.array.indexOf(@name)
       result.array.splice index, 1 if index >= 0
