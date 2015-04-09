@@ -134,3 +134,44 @@ describe 'test cyclical needs', ->
       result = this.needs.ordered()
 
       assert.deepEqual result, expected
+
+describe 'test needs.a', ->
+
+  beforeEach 'new Needs', -> this.needs = needier()
+
+  describe 'single need without needs', ->
+
+    it 'should return an empty list', ->
+      expected =
+        success: true
+        had: 'needs'
+        array: []
+      this.needs.of 'A'
+      result = this.needs.a 'A'
+      assert.deepEqual result, expected
+
+  describe 'single need with single need', ->
+
+    it 'should list it', ->
+      expected =
+        success: true
+        had: 'needs'
+        array: [ 'A' ]
+      this.needs.of('A').are 'B'
+      result = this.needs.a 'B'
+      assert.deepEqual result, expected
+
+  describe 'single need with multiple needs', ->
+
+    it 'should list it', ->
+      expected =
+        success: true
+        had: 'needs'
+        array: [ 'A' ]
+      this.needs.of('A').are 'B', 'C', 'D'
+      result1 = this.needs.a 'B'
+      result2 = this.needs.a 'C'
+      result3 = this.needs.a 'D'
+      assert.deepEqual result1, expected
+      assert.deepEqual result2.array, expected.array
+      assert.deepEqual result3.array, expected.array
