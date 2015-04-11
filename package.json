@@ -1,6 +1,6 @@
 {
   "name": "needier",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "description": "Dependency ordering",
   "main": "index.js",
   "author": "Eli Doran <eli@elidoran.com>",
@@ -20,5 +20,9 @@
   "devDependencies": {
     "coffee-script": "^1.9.1",
     "mocha": "^2.2.1"
+  },
+  "dependencies": {
+    "had": "^0.6.0",
+    "mocha": "^2.2.4"
   }
 }
