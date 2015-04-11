@@ -51,13 +51,17 @@ result = needs.remove 'C'
 ### **needs.add(object*)**
 
 ```coffeescript
-results = needs.add 'someStringId', {id:'ObjectID1'}, {id:'ObjectID2', needs:['anotherStringId']}
-results = # contents of results from above function call
+need1 = 'someStringId'  # a string, will be both id and object
+need2 = id:'ObjectId1'  # an object with `id` property
+need3 = id:'ObjectId2', needs:[ 'anotherStringId' ] # object with id and needs
+
+results = needs.add need1, need2, need3
+results = # contents are:
   success:true
   added:
-    someStringId:'someStringId'  # a string becomes both the id and the object
-    ObjectID1: { id:'ObjectID1'} # full object, uses its id prop
-    ObjectID2: { id:'ObjectID2', needs:['anotherStringId']} # full object uses its id and needs props
+    someStringId:'someStringId'  # string
+    ObjectID1: { id:'ObjectID1'} # full object
+    ObjectID2: { id:'ObjectID2', needs:['anotherStringId']} props
     anotherStringId: 'anotherStringId' # implicitly added by ObjectID2
 ```
 
@@ -91,7 +95,9 @@ property.
 needs.add 'A', {id:'B'}, {id:'C', needs:['D']}
 # now contains A,B,C,D
 
-result = needs.remove 'A'  # or needs.remove id:'A'  or  needs.remove {id:'A'}
+result = needs.remove 'A'  
+needs.remove id:'A'   # same
+needs.remove {id:'A'} # same
 # now contains B,C,D
 result = # contents are:
   success:true
@@ -99,13 +105,15 @@ result = # contents are:
     A:'A'
 
 result = needs.remove 'C'
-# now contains B,D.  'D' remains, added implicitly, remove explicitly. TODO: fix this
+# now contains B,D.
+# NOTE: D remains, added implicitly, remove explicitly. TODO: fix this
 result = # contents are:
   success:true
   removed:
     C:{id:'C', needs:['D']}
 
-result = needs.remove 'B', 'D' # or needs.remove ['B', 'D']  or other ID style variations
+result = needs.remove 'B', 'D'
+needs.remove ['B', 'D']  #all alternates allowed
 # now empty
 result = # contents are:
   success:true
