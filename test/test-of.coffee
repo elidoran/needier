@@ -14,7 +14,7 @@ describe 'test `of`', ->
           had: 'needs'
           success: true
           successes: [
-            {had:'needs',needs:{}, success:true}
+            {had:'needs',needsOf:{}, success:true}
           ]
           error:'multiple'
           errors:[
@@ -30,7 +30,7 @@ describe 'test `of`', ->
           had: 'needs'
           success: true
           successes: [
-            {had:'needs',needs:{}, success:true}
+            {had:'needs',needsOf:{}, success:true}
           ]
           error:'multiple'
           errors:[
@@ -51,7 +51,7 @@ describe 'test `of`', ->
             had: 'needs'
             success: true
             successes: [
-              {had:'needs',needs:{}, success:true}
+              {had:'needs',needsOf:{}, success:true}
             ]
             error:'multiple'
             errors:[
@@ -68,7 +68,7 @@ describe 'test `of`', ->
           expected =
             had: 'needs'
             success: true
-            needs: A:[]
+            needsOf: A:[]
           result = this.needs.add need1
           result = this.needs.of 'A'
           assert.deepEqual result, expected
@@ -81,7 +81,7 @@ describe 'test `of`', ->
           expected =
             had: 'needs'
             success: true
-            needs: A:[]
+            needsOf: A:[]
           result = this.needs.add need1, need2
           result = this.needs.of 'A'
           assert.deepEqual result, expected
@@ -96,7 +96,7 @@ describe 'test `of`', ->
             had: 'needs'
             success: true
             successes: [
-              {had:'needs',needs:{}, success:true}
+              {had:'needs',needsOf:{}, success:true}
             ]
             error:'multiple'
             errors:[
@@ -113,7 +113,7 @@ describe 'test `of`', ->
           expected =
             had: 'needs'
             success: true
-            needs: A:[]
+            needsOf: A:[]
           result = this.needs.add need1
           result = this.needs.of id:'A'
           assert.deepEqual result, expected
@@ -126,7 +126,7 @@ describe 'test `of`', ->
           expected =
             had: 'needs'
             success: true
-            needs: A:[]
+            needsOf: A:[]
           result = this.needs.add need1, need2
           result = this.needs.of id:'A'
           assert.deepEqual result, expected
@@ -139,7 +139,7 @@ describe 'test `of`', ->
           expected =
             had: 'needs'
             success: true
-            needs: 'B':[]
+            needsOf: 'B':[]
           result = this.needs.add need1, need2
           result = this.needs.of id:'B'
           assert.deepEqual result, expected
@@ -152,7 +152,7 @@ describe 'test `of`', ->
           expected =
             had: 'needs'
             success: true
-            needs: 'A':[id:'B']
+            needsOf: 'A':[id:'B']
           result = this.needs.add need1, need2
           result = this.needs.of id:'A'
           assert.deepEqual result, expected
@@ -166,25 +166,16 @@ describe 'test `of`', ->
           expected =
             had: 'needs'
             success: true
-            needs: 'A':['C', {id:'B',needs:['C']}]
+            needsOf: 'A':['C', {id:'B',needs:['C']}]
           result = this.needs.add need1, need2
           result = this.needs.of 'A'
           assert.deepEqual result, expected
 
   describe 'with multiple ids', ->
 
-      it '', ->
+    it ''
 
 
   describe 'with array of ids (splatted)', ->
 
-      it 'should return both strings', ->
-        need1 = 'A'
-        need2 = 'B'
-        expected =
-          had: 'needs'
-          success: true
-          array: [need1, need2]
-        result = this.needs.add need1, need2
-        result = this.needs.ordered()
-        assert.deepEqual result, expected
+    it ''

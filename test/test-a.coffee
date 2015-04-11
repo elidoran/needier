@@ -14,7 +14,7 @@ describe 'test needs.a', ->
         expected =
           success: true
           had: 'needs'
-          array: []
+          needsA: A:[]
         result = this.needs.add need1
         result = this.needs.a id:'A'
         assert.deepEqual result, expected
@@ -26,7 +26,7 @@ describe 'test needs.a', ->
         expected =
           success: true
           had: 'needs'
-          array: []
+          needsA: A:[]
         result = this.needs.add need1
         result = this.needs.a 'A'
         assert.deepEqual result, expected
@@ -34,12 +34,11 @@ describe 'test needs.a', ->
   describe 'single need with single need', ->
 
     it 'should list it', ->
-      #need1 = id:'A'
       need2 = id:'B', needs:['A']
       expected =
         success: true
         had: 'needs'
-        array: [ need2 ]
+        needsA: A:[ need2 ]
       result = this.needs.add need2#need1, need2
       result = this.needs.a id:'A'
       assert.deepEqual result, expected
@@ -48,20 +47,17 @@ describe 'test needs.a', ->
 
     it 'should list it', ->
       need1 = id:'A', needs:['B', 'C', 'D']
-      #need2 = id:'B'
-      #need3 = id:'C'
-      #need4 = id:'D'
       expected =
         success: true
         had: 'needs'
-        array: [ need1 ]
+        needsA: B:[ need1 ]
       this.needs.add need1#, need2, need3, need4
       result1 = this.needs.a id:'B'
       result2 = this.needs.a id:'C'
       result3 = this.needs.a id:'D'
       assert.deepEqual result1, expected
-      assert.deepEqual result2, expected
-      assert.deepEqual result3, expected
+      assert.deepEqual result2.needsA.C, expected.needsA.B
+      assert.deepEqual result3.needsA.D, expected.needsA.B
 
   describe 'single need with multiple needs, explicit', ->
 
@@ -73,14 +69,14 @@ describe 'test needs.a', ->
       expected =
         success: true
         had: 'needs'
-        array: [ need1 ]
+        needsA: B:[ need1 ]
       this.needs.add need1, need2, need3, need4
       result1 = this.needs.a id:'B'
       result2 = this.needs.a id:'C'
       result3 = this.needs.a id:'D'
       assert.deepEqual result1, expected
-      assert.deepEqual result2, expected
-      assert.deepEqual result3, expected
+      assert.deepEqual result2.needsA.C, expected.needsA.B
+      assert.deepEqual result3.needsA.D, expected.needsA.B
 
   describe 'two needs with same need, implicit', ->
 
@@ -90,7 +86,7 @@ describe 'test needs.a', ->
       expected =
         success: true
         had: 'needs'
-        array: [ need1, need2 ]
+        needsA: C:[ need1, need2 ]
       this.needs.add need1, need2
       result = this.needs.a id:'C'
       assert.deepEqual result, expected
@@ -104,7 +100,7 @@ describe 'test needs.a', ->
       expected =
         success: true
         had: 'needs'
-        array: [ need1, need2 ]
+        needsA: C:[ need1, need2 ]
       this.needs.add need1, need2#, need3
       result = this.needs.a id:'C'
       assert.deepEqual result, expected
