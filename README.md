@@ -48,7 +48,7 @@ result = needs.remove 'C'
 
 ## API of Needs
 
-### **needs.add(object*)**
+### **needs.add(object+)**
 
 ```coffeescript
 need1 = 'someStringId'  # a string, will be both id and object
@@ -65,7 +65,7 @@ results = # contents are:
     anotherStringId: 'anotherStringId' # implicitly added by ObjectID2
 ```
 
-### **needs.has(id*)**
+### **needs.has(id+)**
 
 Check existence of need(s) with the specified ids.
 
@@ -86,7 +86,7 @@ result = # results of above calls:
 if result.has.A then 'good'
 ```
 
-### **needs.remove(id*)**
+### **needs.remove(id+)**
 
 Remove needs (dependencies). An `id` can be a string or an object with an `id`
 property.
@@ -122,7 +122,7 @@ result = # contents are:
     D:'D'
 ```
 
-### **needs.of(id*)**
+### **needs.of(id+)**
 
 Gather needs (dependencies) for all specified id's. An `id` can be a string or an
 object with an `id` property.
@@ -141,7 +141,7 @@ result = # result of all the above calls are the same:
     B: []
 ```
 
-### **needs.a(name)**
+### **needs.a(id+)**
 
 Gather needs which *need* (depend on) the specified ids.
 
