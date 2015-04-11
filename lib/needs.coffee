@@ -65,14 +65,10 @@ class Needs
 
     has = {}
 
-    for id,i in ids
+    for id in ids
 
-      #unless id?
-      #  had.addError error:'null', type:'array element', index:i, in:ids
-      #  continue
-
-      if id?.id? # passed object with an id prop
-        id = id.id
+      # passed object with an id prop
+      if id?.id? then id = id.id
 
       has[id] = @things?[id]?
 
@@ -130,18 +126,29 @@ class Needs
     return had.success added:added
 
   remove: (ids...) ->
+    # splatted, will never be null, an empty array instead
+
+    if ids?[0]?.push? # unwrap array
+      ids = ids[0]
 
     removed = {}
 
-    for id in ids when @things?[id]?
-      removed[id] = @things[id].object
-      delete @things[id]
-      @thingCount--
-      for key,thing of @things
-        index = thing.before.indexOf id
-        thing.before.splice index, 1 if index >= 0
+    for id in ids
+
+      # passed object with an id prop
+      if id?.id? then id = id.id
+
+      if @things?[id]?
+        removed[id] = @things[id].object
+        delete @things[id]
+        @thingCount--
+
+        for key,thing of @things
+          index = thing.before.indexOf id
+          thing.before.splice index, 1 if index >= 0
 
     return had.success removed:removed
+
 
   of: (ids...) ->
     # splatted, will never be null, an empty array instead
