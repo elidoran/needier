@@ -149,9 +149,13 @@ class Needs
 
     return had.success removed:removed
 
+  _get: (from, ids) ->
 
-  of: (ids...) ->
-    # splatted, will never be null, an empty array instead
+    if had.nullArg 'from', from
+      return had.results()
+
+    if had.nullArg 'ids', from
+      return had.results()
 
     if ids?[0]?.push? # unwrap array
       ids = ids[0]
@@ -171,7 +175,7 @@ class Needs
         had.addError error:'unknown need id', type:'invalid request', id:id
         continue
 
-      result = @_search 'after', id
+      result = @_search from, id
 
       unless result?.error?
         index = result.array.indexOf(id)
@@ -183,28 +187,17 @@ class Needs
       # else, add error into return
       else had.addError result # TODO: check this
 
-    return had.success needs:hold
+    return hold
 
-  a: (id) ->
+  of: (ids...) ->
+    # splatted, will never be null, an empty array instead
+    hold = @_get 'after', ids
+    return had.success needsOf:hold
 
-    if had.nullArg 'id', id
-      return had.results()
-
-    unless typeof id is 'string'
-      if had.nullProp 'id', id
-        return had.results()
-
-      id = id.id
-
-    result = @_search 'before', id
-
-    unless result?.error?
-      idx = result.array.indexOf id
-      if idx >= 0 then result.array.splice idx, 1
-
-      @_swapInThing result.array
-
-    return result
+  a: (ids...) ->
+    # splatted, will never be null, an empty array instead
+    hold = @_get 'before', ids
+    return had.success needsA:hold
 
   ordered: () ->
 
