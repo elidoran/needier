@@ -8,12 +8,13 @@ class Needs
     @clear()
 
   clear: ->
-    @nodes = {}
-    @nodeCount = 0
+    @things = {}
+    @thingCount = 0
 
-  _search: (which, searchNames...) ->
+  _swapInThing: (array) ->
+    array[index] = @things[id].object for id,index in array
 
-    # TODO: check names and which and return error results...
+  _search: (which, searchIds...) ->
 
     search =
       which: which
@@ -21,8 +22,8 @@ class Needs
       ing: {}
       ed: {}
 
-    for name in searchNames
-      result = @_searchStep search, name
+    for id in searchIds
+      result = @_searchStep search, id
 
       if result?.error? then break
 
@@ -32,117 +33,186 @@ class Needs
 
     return result
 
-  _searchStep: (search, searchName) ->
+  _searchStep: (search, searchId) ->
 
-    search.ed[searchName]  = true
-    search.ing[searchName] = true
+    search.ed[searchId]  = true
+    search.ing[searchId] = true
 
-    for nodeName in @nodes?[searchName][search.which]
-      unless search.ed?[nodeName]?
-        result = @_searchStep search, nodeName
+    for id in @things?[searchId][search.which]
+      unless search.ed?[id]?
+        result = @_searchStep search, id
 
-      else if search.ing?[nodeName]?
+      else if search.ing?[id]?
         result = had.error
           error: 'cyclical need'
           type: 'cyclical'
-          name: nodeName
+          name: id
 
       if result?.error? then break
 
-
     unless result?.error?
-      delete search.ing[searchName]
+      delete search.ing[searchId]
 
-      unless searchName in search.result
-        search.result.push searchName
+      unless searchId in search.result
+        search.result.push searchId
 
     return result
 
-  remove: (names...) ->
-    for name in names when @nodes?[name]?
-      delete @nodes[name]
-      @nodeCount--
-      for node in @nodes
-        index = node.before.indexOf name
-        node.before.splice index, 1 if index >= 0
-    return
+  has: (ids...) ->
 
-  has: (name) -> @nodes?[name]?
+    if ids?[0]?.push?
+      ids = ids[0]  # unwrap array
 
-  of: (name) ->
-    unless @nodes?[name]?
+    has = {}
 
-      @nodes[name] = new Needy name, this
-      @nodeCount++
+    for id,i in ids
 
-    return @nodes[name]
+      #unless id?
+      #  had.addError error:'null', type:'array element', index:i, in:ids
+      #  continue
 
-  a: (name) ->
+      if id?.id? # passed object with an id prop
+        id = id.id
 
-    unless name?
-      result = had.error
-        error: 'specify a need name'
-        type: 'arg'
-        name: 'name'
+      has[id] = @things?[id]?
 
-    else if @nodes?[name]?
-      result = @_search 'before', name
+    had.success has:has
+
+  add: (objects...) ->
+
+    if objects?[0]?.push?  #unwrap array
+      objects = objects[0]
+
+    added = {}
+    for object in objects
+
+      if had.nullArg 'object', object
+        return had.results()
+
+      # if they gave us a string then that's both the ID and the object
+      if typeof object is 'string'
+        id = object
+
+      else if had.nullProp 'id', object
+        # let it add the error for later results return
+        continue
+
+      else if object?.object?
+        id = object.id
+        originalObject = object
+        object = object.object
+
+      else
+        id = object.id
+
+      if @things?[id]?
+        if typeof @things[id].object is 'string'
+          @things[id].object = object
+      else
+        @things[id] = before:[], after:[], object:object
+        @thingCount++
+
+      added[id] = object
+
+      needs = object?.needs ? originalObject?.needs
+      if needs?
+        thing = @things[id]
+        for needId in needs
+          unless @things?[needId]?
+            @add needId
+            added[needId] = needId
+          other = @things[needId]
+          unless needId in thing.after
+            thing.after.push needId
+          unless id in other.before
+            other.before.push id
+
+    return had.success added:added
+
+  remove: (ids...) ->
+
+    removed = {}
+
+    for id in ids when @things?[id]?
+      removed[id] = @things[id].object
+      delete @things[id]
+      @thingCount--
+      for key,thing of @things
+        index = thing.before.indexOf id
+        thing.before.splice index, 1 if index >= 0
+
+    return had.success removed:removed
+
+  of: (ids...) ->
+    # splatted, will never be null, an empty array instead
+
+    if ids?[0]?.push? # unwrap array
+      ids = ids[0]
+
+    hold = {}
+
+    for id,i in ids
+
+      unless id?
+        had.addError error:'null', type:'array element', index:i, in:ids
+        continue
+
+      if id?.id? # passed object with an id prop
+        id = id.id
+
+      unless @things?[id]?
+        had.addError error:'unknown need id', type:'invalid request', id:id
+        continue
+
+      result = @_search 'after', id
+
       unless result?.error?
-        idx = result.array.indexOf(name)
-        if idx >= 0
-          result.array.splice idx, 1
+        index = result.array.indexOf(id)
+        result.array.splice index, 1 if index >= 0
 
-    else
-      result = had.error
-        error: 'unknown need'
-        type: 'arg'
-        param: 'name'
-        value: name
+        @_swapInThing result.array
+
+        hold[id] = result.array
+      # else, add error into return
+      else had.addError result # TODO: check this
+
+    return had.success needs:hold
+
+  a: (id) ->
+
+    if had.nullArg 'id', id
+      return had.results()
+
+    unless typeof id is 'string'
+      if had.nullProp 'id', id
+        return had.results()
+
+      id = id.id
+
+    result = @_search 'before', id
+
+    unless result?.error?
+      idx = result.array.indexOf id
+      if idx >= 0 then result.array.splice idx, 1
+
+      @_swapInThing result.array
 
     return result
 
   ordered: () ->
 
-    # get names of needs to search
-    names = (name for own name,node of @nodes when node.before.length is 0)
-    result = @_search 'after', names...
+    ids = (id for own id,thing of @things when thing.before.length is 0)
+    result = @_search 'after', ids...
 
     unless result?.error?
 
-      if @nodeCount > 0 and result.array.length is 0
+      if @thingCount > 0 and result.array.length is 0
         result = had.error
           error: 'none without need'
           type:  'cyclical'
 
+      else
+        if @testing then console.log 'PreSwap array:',result.array
+        @_swapInThing result.array
+
     return result
-
-class Needy
-  constructor: (@name, @needs) ->
-    @after = []
-    @before = []
-
-  are: (needNames...) ->
-    for needName in needNames
-      other = @needs.of needName
-      @after.push needName unless needName in @after
-      other.before.push @name unless @name in other.before
-    return this
-
-  list: ->
-    result = @needs._search 'after', @name
-    unless result?.error?
-      index = result.array.indexOf(@name)
-      result.array.splice index, 1 if index >= 0
-    return result
-
-  remove: (needNames...) ->
-    for needName in needNames
-      other = @needs.nodes[needName]
-      if other?
-        idx = @after.indexOf(needName)
-        if idx >= 0
-          @after.splice idx, 1
-        idx = other.before.indexOf(@name)
-        if idx >= 0
-          other.before.splice idx, 1
-    return
