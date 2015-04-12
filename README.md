@@ -65,6 +65,27 @@ results = # contents are:
     anotherStringId: 'anotherStringId' # implicitly added by ObjectID2
 ```
 
+### **needs.include(id, needs+)**
+
+Add needs (dependencies) to an existing need.
+
+```coffeescript
+
+needs.add id:'A', needs:['B']
+
+# three equivalent calls
+#  id can be a string or an object with an id property
+#  needs can be a list of arguments or an array
+needs.include 'A', 'C'
+needs.include {id:'A'}, 'C'
+needs.include 'A', ['C']
+
+result = needs.of 'A'
+results = # contents are:
+  success:true
+  needsOf: A:['B', 'C']
+```
+
 ### **needs.has(id+)**
 
 Check existence of need(s) with the specified ids.
@@ -122,6 +143,48 @@ result = # contents are:
     D:'D'
 ```
 
+### **needs.retract(id, needs+)**
+
+Removes needs (dependencies) from an existing need.
+
+```coffeescript
+
+needs.add id:'A', needs:['B', 'C']
+
+# three equivalent calls
+#  id can be a string or an object with an id property
+#  needs can be a list of arguments or an array
+needs.retract 'A', 'C'
+needs.retract 'A', ['C']
+needs.retract {id:'A'}, ['C']
+
+result = needs.of 'A'
+results = # contents are:
+  success:true
+  needsOf: A:['B']
+```
+
+### **needs.replace(id, needs+)**
+
+Replaces existing needs (dependencies) of an existing need.
+
+```coffeescript
+
+needs.add id:'A', needs:['B', 'C']
+
+# three equivalent calls
+#  id can be a string or an object with an id property
+#  needs can be a list of arguments or an array
+needs.replace 'A', 'D', 'E'
+needs.replace {id:'A'}, 'D', 'E'
+needs.replace 'A', ['D', 'E']
+
+result = needs.of 'A'
+results = # contents are:
+  success:true
+  needsOf: A:['D', 'E']
+```
+
 ### **needs.of(id+)**
 
 Gather needs (dependencies) for all specified id's. An `id` can be a string or an
@@ -171,5 +234,12 @@ result = # contents are:
     'A', {id:'B', needs:['A']}, {id:'C', needs:['B']}, {id:'D', needs:['C']}
   ]
 ```
+
+## Todo
+
+1. add tests for `get`
+2. add before/after constraints instead of `needs` (which is essentially a `after` constraint)
+3. add tests for before/after
+4. add tests for include/retract/replace
 
 ## MIT License

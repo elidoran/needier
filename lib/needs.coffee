@@ -74,6 +74,31 @@ class Needs
 
     had.success has:has
 
+  get: (ids...) ->
+
+    if ids?[0]?.push?
+      ids = ids[0]  # unwrap array
+
+    get = {}
+    unknown = {}
+
+    if ids.length is 0
+      for object in ids
+
+        # passed object with an id prop
+        id = if object?.id? then object.id else object
+
+        if @things?[id]?
+          get[id] = @things[id]
+
+        else
+          unknown[id] = object
+
+    else # get all # TODO: deep copy?
+      get[key] = value for own key,value of @things
+
+    had.success needs:get, unknown:unknown
+
   add: (objects...) ->
 
     if objects?[0]?.push?  #unwrap array
@@ -83,7 +108,8 @@ class Needs
     for object in objects
 
       if had.nullArg 'object', object
-        return had.results()
+        #allow error to be added
+        continue
 
       # if they gave us a string then that's both the ID and the object
       if typeof object is 'string'
@@ -113,17 +139,36 @@ class Needs
       needs = object?.needs ? originalObject?.needs
       if needs?
         thing = @things[id]
-        for needId in needs
-          unless @things?[needId]?
-            @add needId
-            added[needId] = needId
-          other = @things[needId]
-          unless needId in thing.after
-            thing.after.push needId
-          unless id in other.before
-            other.before.push id
+        @_addNeed id, thing, needs, added
+        # for needId in needs
+        #   unless @things?[needId]?
+        #     @add needId
+        #     added[needId] = needId
+        #   other = @things[needId]
+        #   unless needId in thing.after
+        #     thing.after.push needId
+        #   unless id in other.before
+        #     other.before.push id
 
     return had.success added:added
+
+  _addNeed: (id, thing, needs, added) ->
+    for needId in needs
+      unless @things?[needId]?
+        @add needId
+        added[needId] = needId
+      other = @things[needId]
+      thing.after.push needId unless needId in thing.after
+      other.before.push id unless id in other.before
+
+  _removeNeed: (id, thing, needs) ->
+    for needId in needs
+      index = thing.after.indexOf needId
+      if index > -1 then thing.after = thing.after.splice index, 1
+      other = @things[needId]
+      if other?
+        index = other.before.indexOf id
+        if index > -1 then other.before = other.before.splice index, 1
 
   remove: (ids...) ->
     # splatted, will never be null, an empty array instead
@@ -149,7 +194,80 @@ class Needs
 
     return had.success removed:removed
 
-  _get: (from, ids) ->
+  include: (id, needs...) ->
+
+    if had.nullArg 'id', id
+      return had.results()
+
+    id = id.id if id?.id?
+    needs = needs[0] if needs?[0]?.push?
+
+    if @things?[id]?
+      thing = @things[id]
+      @_addNeed id, thing, needs, {} # TODO: use 'added' in results
+      # TODO: consider, do we edit their object's needs property?
+      if thing.object?.needs?
+        thing.object.needs.push need for need in needs
+      else
+        thing.object.needs = needs
+      combined = thing.object.needs
+
+    else
+      return had.error error:'unknown need', type:'id', id:id
+
+    return had.success combined:combined
+
+  retract: (id, needs...) ->
+
+    if had.nullArg 'id', id
+      return had.results()
+
+    id = id.id if id?.id?
+    needs = needs[0] if needs?[0]?.push?
+
+    if @things?[id]?
+      thing = @things[id]
+      @_removeNeed id, thing, needs
+      # TODO: consider, do we edit their object's needs property?
+      if thing.object?.needs? # TODO: ensure it's an array?
+        thing.object.needs = (need for need in thing.object.needs when need not in needs)
+      else
+        thing.object.needs = needs
+      retained = thing.object.needs
+
+    else
+      return had.error error:'unknown need', type:'id', id:id
+
+    return had.success need:thing
+
+  replace: (id, needs...) ->
+
+    if had.nullArg 'id', id
+      return had.results()
+
+    id = id.id if id?.id?
+    needs = needs[0] if needs?[0]?.push?
+
+    if @things?[id]?
+      thing = @things[id]
+
+      # TODO: like combine+delete except we:
+      #   add ones not in thing.object.needs
+      #  and
+      #   delete ones not in `needs`
+
+      array = (need for need in needs when need not in thing.object.needs)
+      @_addNeeds id, thing, array
+
+      array = (need for need in thing.object.needs when need not in needs)
+      @_removeNeeds id, thing, array
+
+    else
+      return had.error error:'unknown need', type:'id', id:id
+
+    return had.success need:thing
+
+  _gather: (from, ids) ->
 
     if had.nullArg 'from', from
       return had.results()
@@ -160,19 +278,20 @@ class Needs
     if ids?[0]?.push? # unwrap array
       ids = ids[0]
 
-    hold = {}
+    needs = {}
+    unknown = {}
 
-    for id,i in ids
+    for object,i in ids
 
-      unless id?
+      unless object?
         had.addError error:'null', type:'array element', index:i, in:ids
         continue
 
-      if id?.id? # passed object with an id prop
-        id = id.id
+      id = if object?.id? then object.id else object # passed object with an id prop
 
       unless @things?[id]?
-        had.addError error:'unknown need id', type:'invalid request', id:id
+        #had.addError error:'unknown need id', type:'invalid request', id:id
+        unknown[id] = object
         continue
 
       result = @_search from, id
@@ -183,21 +302,21 @@ class Needs
 
         @_swapInThing result.array
 
-        hold[id] = result.array
+        needs[id] = result.array
       # else, add error into return
       else had.addError result # TODO: check this
 
-    return hold
+    return had.success needs:needs, unknown:unknown
 
   of: (ids...) ->
     # splatted, will never be null, an empty array instead
-    hold = @_get 'after', ids
-    return had.success needsOf:hold
+    result = @_gather 'after', ids
+    return had.success needsOf:result.needs, unknown:result.unknown
 
   a: (ids...) ->
     # splatted, will never be null, an empty array instead
-    hold = @_get 'before', ids
-    return had.success needsA:hold
+    result = @_gather 'before', ids
+    return had.success needsA:result.needs, unknown:result.unknown
 
   ordered: () ->
 
