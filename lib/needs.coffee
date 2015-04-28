@@ -156,6 +156,25 @@ class Needs
 
     return had.success removed:removed
 
+  update: (options) ->
+
+    if had.nullArg 'options', options
+      return had.results()
+
+    for key in [ 'id', 'needs', 'type' ] # TODO: Had should support this
+      if had.nullProp key, options then return had.results
+
+    thing = @things?[options.id]
+    unless thing?
+      return had.error error:'unknown need', type:'unknown', id:options.id
+
+    switch options.type
+      when 'combine'
+        added = {}
+        @_addNeed options.id, thing, options.needs, added
+        return had.success added:added
+      else
+        return had.error error:'unknown update type', type:'unknown', type:options.type
 
   _addNeed: (id, thing, needs, added) ->
     for needId in needs
