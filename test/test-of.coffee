@@ -13,13 +13,8 @@ describe 'test `of`', ->
         expected =
           had: 'needs'
           success: true
-          successes: [
-            {had:'needs',needsOf:{}, success:true}
-          ]
-          error:'multiple'
-          errors:[
-            {error:'unknown need id',type:'invalid request',id:'A',had:'needs'}
-          ]
+          needsOf:{}
+          unknown: A:'A'
         result = this.needs.of 'A'
         assert.deepEqual result, expected
 
@@ -29,13 +24,8 @@ describe 'test `of`', ->
         expected =
           had: 'needs'
           success: true
-          successes: [
-            {had:'needs',needsOf:{}, success:true}
-          ]
-          error:'multiple'
-          errors:[
-            {error:'unknown need id',type:'invalid request',id:'A',had:'needs'}
-          ]
+          needsOf:{}
+          unknown: A:id:'A'
         result = this.needs.of id:'A'
         assert.deepEqual result, expected
 
@@ -50,13 +40,8 @@ describe 'test `of`', ->
           expected =
             had: 'needs'
             success: true
-            successes: [
-              {had:'needs',needsOf:{}, success:true}
-            ]
-            error:'multiple'
-            errors:[
-              {error:'unknown need id',type:'invalid request',id:'B',had:'needs'}
-            ]
+            needsOf:{}
+            unknown: B:'B'
           result = this.needs.add need1
           result = this.needs.of 'B'
           assert.deepEqual result, expected
@@ -94,14 +79,9 @@ describe 'test `of`', ->
           need1 = id:'A'
           expected =
             had: 'needs'
-            success: true
-            successes: [
-              {had:'needs',needsOf:{}, success:true}
-            ]
-            error:'multiple'
-            errors:[
-              {error:'unknown need id',type:'invalid request',id:'B',had:'needs'}
-            ]
+            success:true
+            needsOf:{}
+            unknown: B:id:'B'
           result = this.needs.add need1
           result = this.needs.of id:'B'
           assert.deepEqual result, expected
