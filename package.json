@@ -1,6 +1,6 @@
 {
   "name": "needier",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Dependency ordering",
   "main": "index.js",
   "author": "Eli Doran <eli@elidoran.com>",

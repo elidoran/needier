@@ -7,101 +7,12 @@ class Needs
   constructor: ->
     @clear()
 
-  clear: ->
-    @things = {}
-    @thingCount = 0
-
-  _swapInThing: (array) ->
-    array[index] = @things[id].object for id,index in array
-
-  _search: (which, searchIds...) ->
-
-    search =
-      which: which
-      result: []
-      ing: {}
-      ed: {}
-
-    for id in searchIds
-      result = @_searchStep search, id
-
-      if result?.error? then break
-
-    unless result?
-      result = had.success
-        array: search.result
-
-    return result
-
-  _searchStep: (search, searchId) ->
-
-    search.ed[searchId]  = true
-    search.ing[searchId] = true
-
-    for id in @things?[searchId][search.which]
-      unless search.ed?[id]?
-        result = @_searchStep search, id
-
-      else if search.ing?[id]?
-        result = had.error
-          error: 'cyclical need'
-          type: 'cyclical'
-          name: id
-
-      if result?.error? then break
-
-    unless result?.error?
-      delete search.ing[searchId]
-
-      unless searchId in search.result
-        search.result.push searchId
-
-    return result
-
-  has: (ids...) ->
-
-    if ids?[0]?.push?
-      ids = ids[0]  # unwrap array
-
-    has = {}
-
-    for id in ids
-
-      # passed object with an id prop
-      if id?.id? then id = id.id
-
-      has[id] = @things?[id]?
-
-    had.success has:has
-
-  get: (ids...) ->
-
-    if ids?[0]?.push?
-      ids = ids[0]  # unwrap array
-
-    get = {}
-    unknown = {}
-    unknownCount = 0
-
-    if ids.length is 0
-      for object in ids
-
-        # passed object with an id prop
-        id = if object?.id? then object.id else object
-
-        if @things?[id]?
-          get[id] = @things[id]
-
-        else
-          unknownCount++
-          unknown[id] = object
-
-    else # get all # TODO: deep copy?
-      get[key] = value for own key,value of @things
-
-    result = needs:get
-    result.unknown = unknown if unknownCount > 0
-    had.success result
+  a: (ids...) ->
+    # splatted, will never be null, an empty array instead
+    result = @_gather 'before', ids
+    success = needsA:result.needs
+    success.unknown = result.unknown if result?.unknown?
+    return had.success success
 
   add: (objects...) ->
 
@@ -147,23 +58,79 @@ class Needs
 
     return had.success added:added
 
-  _addNeed: (id, thing, needs, added) ->
-    for needId in needs
-      unless @things?[needId]?
-        @add needId
-        added[needId] = needId
-      other = @things[needId]
-      thing.after.push needId unless needId in thing.after
-      other.before.push id unless id in other.before
+  clear: ->
+    @things = {}
+    @thingCount = 0
 
-  _removeNeed: (id, thing, needs) ->
-    for needId in needs
-      index = thing.after.indexOf needId
-      if index > -1 then thing.after = thing.after.splice index, 1
-      other = @things[needId]
-      if other?
-        index = other.before.indexOf id
-        if index > -1 then other.before = other.before.splice index, 1
+  get: (ids...) ->
+
+    if ids?[0]?.push?
+      ids = ids[0]  # unwrap array
+
+    get = {}
+    unknown = {}
+    unknownCount = 0
+
+    if ids.length is 0
+      for object in ids
+
+        # passed object with an id prop
+        id = if object?.id? then object.id else object
+
+        if @things?[id]?
+          get[id] = @things[id]
+
+        else
+          unknownCount++
+          unknown[id] = object
+
+    else # get all # TODO: deep copy?
+      get[key] = value for own key,value of @things
+
+    result = needs:get
+    result.unknown = unknown if unknownCount > 0
+    had.success result
+
+  has: (ids...) ->
+
+    if ids?[0]?.push?
+      ids = ids[0]  # unwrap array
+
+    has = {}
+
+    for id in ids
+
+      # passed object with an id prop
+      if id?.id? then id = id.id
+
+      has[id] = @things?[id]?
+
+    had.success has:has
+
+  of: (ids...) ->
+    # splatted, will never be null, an empty array instead
+    result = @_gather 'after', ids
+    success = needsOf:result.needs
+    success.unknown = result.unknown if result?.unknown?
+    return had.success success
+
+  ordered: () ->
+
+    ids = (id for own id,thing of @things when thing.before.length is 0)
+    result = @_search 'after', ids...
+
+    unless result?.error?
+
+      if @thingCount > 0 and result.array.length is 0
+        result = had.error
+          error: 'none without need'
+          type:  'cyclical'
+
+      else
+        if @testing then console.log 'PreSwap array:',result.array
+        @_swapInThing result.array
+
+    return result
 
   remove: (ids...) ->
     # splatted, will never be null, an empty array instead
@@ -189,78 +156,34 @@ class Needs
 
     return had.success removed:removed
 
-  include: (id, needs...) ->
+  update: (options) ->
 
-    if had.nullArg 'id', id
+    if had.nullArg 'options', options
       return had.results()
 
-    id = id.id if id?.id?
-    needs = needs[0] if needs?[0]?.push?
+    for key in [ 'id', 'needs', 'type' ] # TODO: Had should support this
+      if had.nullProp key, options then return had.results
 
-    if @things?[id]?
-      thing = @things[id]
-      @_addNeed id, thing, needs, {} # TODO: use 'added' in results
-      # TODO: consider, do we edit their object's needs property?
-      if thing.object?.needs?
-        thing.object.needs.push need for need in needs
+    thing = @things?[options.id]
+    unless thing?
+      return had.error error:'unknown need', type:'unknown', id:options.id
+
+    switch options.type
+      when 'combine'
+        added = {}
+        @_addNeed options.id, thing, options.needs, added
+        return had.success added:added
       else
-        thing.object.needs = needs
-      combined = thing.object.needs
+        return had.error error:'unknown update type', type:'unknown', type:options.type
 
-    else
-      return had.error error:'unknown need', type:'id', id:id
-
-    return had.success combined:combined
-
-  retract: (id, needs...) ->
-
-    if had.nullArg 'id', id
-      return had.results()
-
-    id = id.id if id?.id?
-    needs = needs[0] if needs?[0]?.push?
-
-    if @things?[id]?
-      thing = @things[id]
-      @_removeNeed id, thing, needs
-      # TODO: consider, do we edit their object's needs property?
-      if thing.object?.needs? # TODO: ensure it's an array?
-        thing.object.needs = (need for need in thing.object.needs when need not in needs)
-      else
-        thing.object.needs = needs
-      retained = thing.object.needs
-
-    else
-      return had.error error:'unknown need', type:'id', id:id
-
-    return had.success need:thing
-
-  replace: (id, needs...) ->
-
-    if had.nullArg 'id', id
-      return had.results()
-
-    id = id.id if id?.id?
-    needs = needs[0] if needs?[0]?.push?
-
-    if @things?[id]?
-      thing = @things[id]
-
-      # TODO: like combine+delete except we:
-      #   add ones not in thing.object.needs
-      #  and
-      #   delete ones not in `needs`
-
-      array = (need for need in needs when need not in thing.object.needs)
-      @_addNeeds id, thing, array
-
-      array = (need for need in thing.object.needs when need not in needs)
-      @_removeNeeds id, thing, array
-
-    else
-      return had.error error:'unknown need', type:'id', id:id
-
-    return had.success need:thing
+  _addNeed: (id, thing, needs, added) ->
+    for needId in needs
+      unless @things?[needId]?
+        @add needId
+        added[needId] = needId
+      other = @things[needId]
+      thing.after.push needId unless needId in thing.after
+      other.before.push id unless id in other.before
 
   _gather: (from, ids) ->
 
@@ -307,34 +230,58 @@ class Needs
     result.unknown = unknown if unknownCount > 0
     return had.success result
 
-  of: (ids...) ->
-    # splatted, will never be null, an empty array instead
-    result = @_gather 'after', ids
-    success = needsOf:result.needs
-    success.unknown = result.unknown if result?.unknown?
-    return had.success success
+  _removeNeed: (id, thing, needs) ->
+    for needId in needs
+      index = thing.after.indexOf needId
+      if index > -1 then thing.after = thing.after.splice index, 1
+      other = @things[needId]
+      if other?
+        index = other.before.indexOf id
+        if index > -1 then other.before = other.before.splice index, 1
 
-  a: (ids...) ->
-    # splatted, will never be null, an empty array instead
-    result = @_gather 'before', ids
-    success = needsA:result.needs
-    success.unknown = result.unknown if result?.unknown?
-    return had.success success
+  _search: (which, searchIds...) ->
 
-  ordered: () ->
+    search =
+      which: which
+      result: []
+      ing: {}
+      ed: {}
 
-    ids = (id for own id,thing of @things when thing.before.length is 0)
-    result = @_search 'after', ids...
+    for id in searchIds
+      result = @_searchStep search, id
 
-    unless result?.error?
+      if result?.error? then break
 
-      if @thingCount > 0 and result.array.length is 0
-        result = had.error
-          error: 'none without need'
-          type:  'cyclical'
-
-      else
-        if @testing then console.log 'PreSwap array:',result.array
-        @_swapInThing result.array
+    unless result?
+      result = had.success
+        array: search.result
 
     return result
+
+  _searchStep: (search, searchId) ->
+
+    search.ed[searchId]  = true
+    search.ing[searchId] = true
+
+    for id in @things?[searchId][search.which]
+      unless search.ed?[id]?
+        result = @_searchStep search, id
+
+      else if search.ing?[id]?
+        result = had.error
+          error: 'cyclical need'
+          type: 'cyclical'
+          name: id
+
+      if result?.error? then break
+
+    unless result?.error?
+      delete search.ing[searchId]
+
+      unless searchId in search.result
+        search.result.push searchId
+
+    return result
+
+  _swapInThing: (array) ->
+    array[index] = @things[id].object for id,index in array
