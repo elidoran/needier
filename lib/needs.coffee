@@ -81,6 +81,7 @@ class Needs
 
     get = {}
     unknown = {}
+    unknownCount = 0
 
     if ids.length is 0
       for object in ids
@@ -92,12 +93,15 @@ class Needs
           get[id] = @things[id]
 
         else
+          unknownCount++
           unknown[id] = object
 
     else # get all # TODO: deep copy?
       get[key] = value for own key,value of @things
 
-    had.success needs:get, unknown:unknown
+    result = needs:get
+    result.unknown = unknown if unknownCount > 0
+    had.success result
 
   add: (objects...) ->
 
@@ -280,6 +284,7 @@ class Needs
 
     needs = {}
     unknown = {}
+    unknownCount = 0
 
     for object,i in ids
 
@@ -291,6 +296,7 @@ class Needs
 
       unless @things?[id]?
         #had.addError error:'unknown need id', type:'invalid request', id:id
+        unknownCount++
         unknown[id] = object
         continue
 
@@ -301,22 +307,28 @@ class Needs
         result.array.splice index, 1 if index >= 0
 
         @_swapInThing result.array
-
         needs[id] = result.array
       # else, add error into return
       else had.addError result # TODO: check this
 
-    return had.success needs:needs, unknown:unknown
+    result = {}
+    result.needs = needs
+    result.unknown = unknown if unknownCount > 0
+    return had.success result
 
   of: (ids...) ->
     # splatted, will never be null, an empty array instead
     result = @_gather 'after', ids
-    return had.success needsOf:result.needs, unknown:result.unknown
+    success = needsOf:result.needs
+    success.unknown = result.unknown if result?.unknown?
+    return had.success success
 
   a: (ids...) ->
     # splatted, will never be null, an empty array instead
     result = @_gather 'before', ids
-    return had.success needsA:result.needs, unknown:result.unknown
+    success = needsA:result.needs
+    success.unknown = result.unknown if result?.unknown?
+    return had.success success
 
   ordered: () ->
 
