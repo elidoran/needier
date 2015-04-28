@@ -144,15 +144,6 @@ class Needs
       if needs?
         thing = @things[id]
         @_addNeed id, thing, needs, added
-        # for needId in needs
-        #   unless @things?[needId]?
-        #     @add needId
-        #     added[needId] = needId
-        #   other = @things[needId]
-        #   unless needId in thing.after
-        #     thing.after.push needId
-        #   unless id in other.before
-        #     other.before.push id
 
     return had.success added:added
 
