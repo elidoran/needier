@@ -253,8 +253,7 @@ class Needs
       if result?.error? then break
 
     unless result?
-      result = had.success
-        array: search.result
+      result = had.success array:search.result
 
     return result
 
