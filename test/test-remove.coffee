@@ -1,5 +1,5 @@
 assert = require 'assert'
-needier = require '../index'
+needier = require '../lib'
 
 describe 'test `remove`', ->
 
