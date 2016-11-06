@@ -3,6 +3,13 @@
   "version": "0.4.0",
   "description": "Dependency ordering",
   "main": "lib",
+  "keywords": [
+    "need",
+    "dependency",
+    "graph",
+    "sorting",
+    "depth first"
+  ],
   "author": "Eli Doran <eli@elidoran.com>",
   "license": "MIT",
   "scripts": {
