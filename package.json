@@ -18,10 +18,10 @@
   },
   "bugs": "http://github.com/elidoran/needier/issues",
   "devDependencies": {
-    "coffee-script": "^1.9.2",
-    "mocha": "^2.2.4"
+    "coffee-script": "^1.11.1",
+    "mocha": "^3.1.2"
   },
   "dependencies": {
-    "had": "^0.6.0"
+    "had": "^0.6.1"
   }
 }
