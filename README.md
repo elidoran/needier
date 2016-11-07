@@ -239,7 +239,7 @@ result = # contents are:
 ## Todo
 
 1. add tests for `get`
-2. add before/after constraints instead of `needs` (which is essentially a `after` constraint)
+2. add before/after constraints instead of `needs` (which is essentially an `after` constraint)
 3. add tests for before/after
 4. add tests for include/retract/replace
 
