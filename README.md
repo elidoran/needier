@@ -3,11 +3,12 @@
 [![Dependency Status](https://gemnasium.com/elidoran/needier.png)](https://gemnasium.com/elidoran/needier)
 [![npm version](https://badge.fury.io/js/needier.svg)](http://badge.fury.io/js/needier)
 
-Dependency ordering
+Dependency ordering with depth first search.
 
 ## Install
 
     npm install needier --save
+
 
 ## Usage
 

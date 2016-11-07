@@ -1,7 +1,7 @@
 {
   "name": "needier",
   "version": "0.4.0",
-  "description": "Dependency ordering",
+  "description": "Dependency ordering with depth first search",
   "main": "lib",
   "keywords": [
     "need",
