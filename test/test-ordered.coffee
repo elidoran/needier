@@ -227,7 +227,19 @@ describe 'test ordered', ->
 
     describe 'test direct cyclical need', ->
 
-      it 'should return error results', ->
+      it 'cant need itself', ->
+        need1 = id:'A', needs: ['A']
+        expected =
+          had: 'needs'
+          error: 'none without need'
+          type: 'cyclical'
+
+        result = this.needs.add need1
+        result = this.needs.ordered()
+
+        assert.deepEqual result, expected
+
+      it 'as only objects should return error results', ->
         need1 = id:'A', needs: ['B']
         need2 = id:'B', needs: ['A']
         expected =
@@ -236,6 +248,21 @@ describe 'test ordered', ->
           type: 'cyclical'
 
         result = this.needs.add need1, need2
+        result = this.needs.ordered()
+
+        assert.deepEqual result, expected
+
+      it 'with extra object should return error results', ->
+        need1 = id:'A', needs: ['B']
+        need2 = id:'B', needs: ['A']
+        need3 = id:'C'
+        expected =
+          had: 'needs'
+          error: 'cyclical needs'
+          type: 'cyclical'
+          needs: [ need1, need2 ]
+
+        result = this.needs.add need1, need2, need3
         result = this.needs.ordered()
 
         assert.deepEqual result, expected
