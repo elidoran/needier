@@ -252,7 +252,7 @@ describe 'test ordered', ->
 
         assert.deepEqual result, expected
 
-      it 'with extra object should return error results', ->
+      it 'with extra leaf object should return error results', ->
         need1 = id:'A', needs: ['B']
         need2 = id:'B', needs: ['A']
         need3 = id:'C'
@@ -261,6 +261,21 @@ describe 'test ordered', ->
           error: 'cyclical needs'
           type: 'cyclical'
           needs: [ need1, need2 ]
+
+        result = this.needs.add need1, need2, need3
+        result = this.needs.ordered()
+
+        assert.deepEqual result, expected
+
+      it 'with extra object should return error results', ->
+        need1 = id:'A', needs: ['B']
+        need2 = id:'B', needs: ['A']
+        need3 = id:'C', needs: ['B']
+        expected =
+          had: 'needs'
+          error: 'cyclical need'
+          type: 'cyclical'
+          name: 'B'
 
         result = this.needs.add need1, need2, need3
         result = this.needs.ordered()
