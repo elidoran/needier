@@ -116,19 +116,34 @@ class Needs
 
   ordered: () ->
 
+    # if there's nothing to work on, then, it's a simple success
+    if @thingCount < 1 then return had.success array:[]
+
+    # find some leaves (have no 'before' needs)
     ids = (id for own id,thing of @things when thing.before.length is 0)
-    result = @_search 'after', ids...
 
-    unless result?.error?
+    # do the work only if there were some `ids` found, otherwise, it's an error
+    result =
+      if ids.length is 0 then had.error
+        error: 'none without need'
+        type:  'cyclical'
 
-      if @thingCount > 0 and result.array.length is 0
+      else @_search 'after', ids...
+
+    # if there isn't an error then let's check some things
+    if had.isSuccess result
+
+      # if there are some things not returned in the array
+      if @thingCount > result.array.length
+
+        # then change the result to an error...
         result = had.error
-          error: 'none without need'
+          error: 'cyclical needs'
           type:  'cyclical'
+          needs: (thing.object for id,thing of @things when not (id in result.array))
 
-      else
-        if @testing then console.log 'PreSwap array:',result.array
-        @_swapInThing result.array
+      # otherwise, swap the ID's for their actual objects
+      else @_swapInThing result.array
 
     return result
 
@@ -250,12 +265,11 @@ class Needs
     for id in searchIds
       result = @_searchStep search, id
 
-      if result?.error? then break
+      if result?.error?
+        return had.error result
 
-    unless result?
-      result = had.success array:search.result
-
-    return result
+    # result ?= had.success array:search.result
+    return had.success array:search.result
 
   _searchStep: (search, searchId) ->
 
@@ -263,22 +277,19 @@ class Needs
     search.ing[searchId] = true
 
     for id in @things?[searchId][search.which]
-      unless search.ed?[id]?
-        result = @_searchStep search, id
+      result =
+        if search.ed[id] isnt true then @_searchStep search, id
 
-      else if search.ing?[id]?
-        result = had.error
+        else if search.ing[id] is true then had.error
           error: 'cyclical need'
           type: 'cyclical'
           name: id
 
-      if result?.error? then break
+      if result?.error? then return result
 
-    unless result?.error?
-      delete search.ing[searchId]
+    delete search.ing[searchId]
 
-      unless searchId in search.result
-        search.result.push searchId
+    unless searchId in search.result then search.result.push searchId
 
     return result
 
